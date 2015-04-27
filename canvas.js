@@ -168,53 +168,29 @@ jQuery(function($) {
             }
         });
     }
+    p.isVisible = function() {
+        return this.nodes.length > 0;
+    }
     window.Map = createjs.promote(Map, 'Container');
 
     // Wolf Class
-    // Sheep Class
-
-    function drawMap() {
-        //TODO:起始位置，单元格边长改为可变的
-        var canvas = document.getElementById('canvas');
-        var ctx = canvas.getContext('2d');
-
-        ctx.strokeStyle = '#FFA500';
-        ctx.beginPath();
-        ctx.lineWidth = 2.0;
-        for (var i = 0; i < 5; i++) {
-            if ( 2 == i ) {
-                ctx.moveTo(80, 140 + i * 80);
-                ctx.lineTo(720, 140 + i * 80);
-            } else {
-                ctx.moveTo(240, 140 + i * 80);
-                ctx.lineTo(560, 140 + i * 80);
-            }
-        }
-        for (var j = 0; j < 5; j++) {
-            ctx.moveTo(240 + j * 80, 140);
-            ctx.lineTo(240 + j * 80, 460);
-        }
-        ctx.lineTo(240, 140);
-        ctx.moveTo(240, 460);
-        ctx.lineTo(560, 140);
-
-        ctx.moveTo(400, 140);
-        ctx.lineTo(640, 380);
-        ctx.lineTo(720, 300);
-        ctx.lineTo(640, 220);
-        ctx.lineTo(400, 460);
-        ctx.lineTo(160, 220);
-        ctx.lineTo(80, 300);
-        ctx.lineTo(160, 380);
-        ctx.lineTo(400, 140);
-
-        ctx.moveTo(160, 380)
-        ctx.lineTo(160, 220);
-        ctx.moveTo(640, 380)
-        ctx.lineTo(640, 220);
-
-        ctx.stroke();
+    function Wolf() {
+        this.Sprite_constructor();
+        // temp shape
+        var star = new createjs.Shape();
+        star.graphics.beginFill("red").drawPolyStar(100, 100, 30, 5, 0.6, -90);
+        this.addChild(star);
     }
+    var wolfProtoType = createjs.extend(Wolf, createjs.Container);
+    wolfProtoType.draw = function(ctx) {
+        this.Sprite_draw(ctx);
+    };
+    wolfProtoType.isVisible = function() {
+        return true;
+    }
+    window.Wolf = createjs.promote(Wolf, 'Sprite');
+
+    // Sheep Class
 
     function getDistance(p1, p2) {
     }
@@ -268,20 +244,28 @@ jQuery(function($) {
     map.x = 80; 
     map.y = 140;
     stage.addChild(map);
-    map.draw();
+
+    var wolf = new Wolf();
+    wolf.x = 100;
+    wolf.y = 100;
+    stage.addChild(wolf);
+
     stage.update();
 
-    //drawMap();
-    drawWolf({x: 240, y: 300});
-    drawWolf({x: 560, y: 300});
+    //drawWolf({x: 240, y: 300});
+    //drawWolf({x: 560, y: 300});
 
-    for (var i = 6; i < 19; i++) {
-        if ( i == 9 || i == 14 ) {
-            i++;
-            continue;
-        }
-        if ( i == 12 ) continue;
-        drawSheep(points[ i ]);
+    //for (var i = 6; i < 19; i++) {
+    //    if ( i == 9 || i == 14 ) {
+    //        i++;
+    //        continue;
+    //    }
+    //    if ( i == 12 ) continue;
+    //    drawSheep(points[ i ]);
+    //}
+    createjs.Ticker.addEventListener("tick", handleTick);
+    function handleTick(event) {
+        stage.update();
     }
 });
 
