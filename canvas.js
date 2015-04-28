@@ -1,4 +1,4 @@
-// draw
+// wvs.js
 jQuery(function($) {
     // Node Class
     function Node(id, x, y) {
@@ -7,6 +7,7 @@ jQuery(function($) {
         this.y = y;
         this.animal = null;
         this.neighbours = [];
+        this._lineDrawed = [];
     }
     // Map Class
     function Map(gridDistance) {
@@ -140,16 +141,18 @@ jQuery(function($) {
                 this.nodes[id] = newnode;
             }
         }
-    }
-    var p = createjs.extend(Map, createjs.Container);
-    p.draw = function(ctx) {
+        
+        // add lines
         var that = this;
-        this.Container_draw(ctx);
         this.nodes.forEach(function(currNode, index, nodes) {
             if (currNode) {
                 currNode.neighbours.forEach(function(neighbourSerial) {
                     var neighbour = nodes[neighbourSerial];
                     if (neighbour) {
+                        if (neighbour._lineDrawed.indexOf(currNode.id) > -1) {
+                            console.log('skip');
+                            return;
+                        }
                         var line = new createjs.Shape();
                         line.graphics.
                             beginStroke('orange').
@@ -157,16 +160,26 @@ jQuery(function($) {
                             moveTo(currNode.x, currNode.y).
                             lineTo(neighbour.x, neighbour.y).
                             endStroke();
-                        //var text = new createjs.Text(currNode.id, "20px Arial", "#ff7700");
-                        //text.x = currNode.x;
-                        //text.y = currNode.y;
-
-                        //that.addChild(text);
                         that.addChild(line);
+
+                        // Record to avoid drawing the line twice.
+                        currNode._lineDrawed.push(neighbour.id);
+
+                        ////// debug
+                        var text = new createjs.Text(currNode.id, "20px Arial", "#ff7700");
+                        text.x = currNode.x;
+                        text.y = currNode.y;
+
+                        that.addChild(text);
+                        //////
                     }
                 });
             }
         });
+    }
+    var p = createjs.extend(Map, createjs.Container);
+    p.draw = function(ctx) {
+        this.Container_draw(ctx);
     }
     p.isVisible = function() {
         return this.nodes.length > 0;
@@ -175,49 +188,25 @@ jQuery(function($) {
 
     // Wolf Class
     function Wolf() {
-        this.Sprite_constructor();
+        this.super_constructor();
         // temp shape
         var star = new createjs.Shape();
         star.graphics.beginFill("red").drawPolyStar(100, 100, 30, 5, 0.6, -90);
         this.addChild(star);
     }
-    var wolfProtoType = createjs.extend(Wolf, createjs.Container);
-    wolfProtoType.draw = function(ctx) {
-        this.Sprite_draw(ctx);
+    var wolfPrototype = createjs.extend(Wolf, createjs.Container);
+    wolfPrototype.draw = function(ctx) {
+        this.super_draw(ctx);
     };
-    wolfProtoType.isVisible = function() {
+    wolfPrototype.isVisible = function() {
         return true;
     }
-    window.Wolf = createjs.promote(Wolf, 'Sprite');
+    window.Wolf = createjs.promote(Wolf, 'super');
 
     // Sheep Class
-
-    function getDistance(p1, p2) {
+    function Sheep() {
     }
-
-    function drawSheep(point) {
-        var canvas = document.getElementById('canvas');
-        var ctx = canvas.getContext('2d');
-        ctx.beginPath();
-        ctx.fillStyle = 'black';
-        ctx.strokeStyle = 'black';
-        ctx.arc(point.x, point.y, 10, 0 , Math.PI * 2, true);
-        ctx.closePath();
-        ctx.fill();
-    }
-
-    function drawWolf(point) {
-        var canvas = document.getElementById('canvas');
-        var ctx = canvas.getContext('2d');
-        ctx.beginPath();
-        ctx.fillStyle = 'red';
-        ctx.strokeStyle = 'red';
-        ctx.moveTo(point.x, point.y - 30);
-        ctx.lineTo(point.x + 30, point.y + 15);
-        ctx.lineTo(point.x - 30, point.y + 15);
-        ctx.closePath();
-        ctx.fill();
-    }
+    var sheepPrototype
 
     var points = [
         { x: 240, y: 140 },{ x: 320, y: 140 },{ x: 400, y: 140 },{ x: 480, y: 140 },{ x: 560, y: 140 },
@@ -250,7 +239,12 @@ jQuery(function($) {
     wolf.y = 100;
     stage.addChild(wolf);
 
-    stage.update();
+    var wolf2 = new Wolf();
+    wolf2.x = 300;
+    wolf2.y = 100;
+    stage.addChild(wolf2);
+
+    //stage.update();
 
     //drawWolf({x: 240, y: 300});
     //drawWolf({x: 560, y: 300});
