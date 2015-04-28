@@ -15,6 +15,14 @@ jQuery(function($) {
         gridDistance = gridDistance || 80;
         this.gridDistance = gridDistance;
 
+        // 棋子Positions
+        this.wolfPositionIndice = [12, 32];
+        this.sheepPositionIndice = [
+            16, 17, 18,
+            21, 23,
+            26, 27, 28
+        ];
+
         // init the nodes
         this.nodes = [];
         var shouldContinue = function(i, j) {
@@ -191,7 +199,7 @@ jQuery(function($) {
         this.super_constructor();
         // temp shape
         var star = new createjs.Shape();
-        star.graphics.beginFill("red").drawPolyStar(100, 100, 30, 5, 0.6, -90);
+        star.graphics.beginFill("red").drawPolyStar(0, 0, 30, 5, 0.6, -90);
         this.addChild(star);
     }
     var wolfPrototype = createjs.extend(Wolf, createjs.Container);
@@ -205,8 +213,83 @@ jQuery(function($) {
 
     // Sheep Class
     function Sheep() {
+        this.super_constructor();
+        // temp shape
+        var circle = new createjs.Shape();
+        circle.graphics.beginFill("DeepSkyBlue").drawCircle(0, 0, 10);
+        this.addChild(circle);
     }
-    var sheepPrototype
+    var sheepPrototype = createjs.extend(Sheep, createjs.Container);
+    sheepPrototype.draw = function(ctx) {
+        this.super_draw(ctx);
+    };
+    // TODO: figure out why visible is a method, not a property.
+    sheepPrototype.isVisible = function() {
+        return true;
+    }
+    window.Sheep = createjs.promote(Sheep, 'super');
+
+    // Game Class
+    function Game(stage) {
+        var map = new Map(80);
+        map.x = 80; 
+        map.y = 140;
+        stage.addChild(map);
+        this.map = map;
+
+        var wolf = new Wolf();
+        this.wolf = wolf;
+
+        var wolf2 = new Wolf();
+        this.wolf2 = wolf2;
+        this.wolves = [wolf, wolf2];
+
+        this.sheeps = [];
+        for (var i = 0; i < 24; i++) {
+            this.sheeps.push(new Sheep());
+        }
+
+        this.round = 0;
+
+        // game status 
+        // 0-not start
+        // 1-game playing
+        // 2-wolves win
+        // 3-sheeps win
+        this.status = 0;
+        this.stage = stage;
+    }
+
+    Game.prototype = {
+        start: function() {
+            this.status = 1;
+            var that = this;
+
+            this.map.wolfPositionIndice.forEach(function(id, index) {
+                var wolf = that.wolves[index];
+                wolf.x = that.map.nodes[id].x;
+                wolf.y = that.map.nodes[id].y;
+                that.map.addChild(wolf);
+            });
+            this.map.sheepPositionIndice.forEach(function(id, index) {
+                var sheep = that.sheeps[index];
+                sheep.x = that.map.nodes[id].x;
+                sheep.y = that.map.nodes[id].y;
+                that.map.addChild(sheep);
+            });
+            this.nextRound();
+        },
+        nextRound: function() {
+            if (this.status != 1) return;
+
+            this.round++;
+            if (this.round % 2 == 1) {
+                // wolf turn
+            } else {
+                // sheep turn
+            }
+        },
+    }
 
     var points = [
         { x: 240, y: 140 },{ x: 320, y: 140 },{ x: 400, y: 140 },{ x: 480, y: 140 },{ x: 560, y: 140 },
@@ -223,28 +306,10 @@ jQuery(function($) {
 
     createjs.Touch.enable(stage);
 
-    //var circle = new createjs.Shape();
-    //circle.graphics.beginFill("DeepSkyBlue").drawCircle(0, 0, 50);
-    //circle.x = 100;
-    //circle.y = 100;
-    //stage.addChild(circle);
+    var game = new Game(stage);
+    game.start();
 
-    var map = new Map(80);
-    map.x = 80; 
-    map.y = 140;
-    stage.addChild(map);
-
-    var wolf = new Wolf();
-    wolf.x = 100;
-    wolf.y = 100;
-    stage.addChild(wolf);
-
-    var wolf2 = new Wolf();
-    wolf2.x = 300;
-    wolf2.y = 100;
-    stage.addChild(wolf2);
-
-    //stage.update();
+    stage.update();
 
     //drawWolf({x: 240, y: 300});
     //drawWolf({x: 560, y: 300});
