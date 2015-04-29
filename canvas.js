@@ -192,6 +192,27 @@ jQuery(function($) {
     p.isVisible = function() {
         return this.nodes.length > 0;
     }
+    // return true/false, indicates successful dock or not.
+    p.dock = function(chessman, evt) {
+        var MAX_TORLENCE = 15;
+        var getDistance = function(x, y, x1, y1) {
+            return Math.sqrt(Math.pow(y1 - y, 2) + Math.pow(x1 - x, 2));
+        };
+        for (var id in this.nodes) {
+            var node = this.nodes[id];
+            if (!node || !node instanceof Node) continue;
+            var dis = getDistance(node.x, node.y, evt.stageX - this.x, evt.stageY - this.y);
+            if (dis <= MAX_TORLENCE) {
+                // TODO: check game logic can dock this node or not
+                // if not: break;
+                // else do as follow:
+                chessman.x = node.x;
+                chessman.y = node.y;
+                return true;
+            }
+        };
+        return false;
+    }
     window.Map = createjs.promote(Map, 'Container');
 
     // Wolf Class
@@ -206,21 +227,21 @@ jQuery(function($) {
         this._lastPos = {};
         this.on('mousedown', function(evt) {
             that._lastPos = {x: that.x, y: that.y };
-            console.log('mousedown trigger');
-            console.log(that._lastPos);
         });
         this.on('pressmove', function(evt) {
             var parent = that.parent;
             parent.setChildIndex(that, parent.children.length - 1);
-            evt.target.x = evt.localX;
-            evt.target.y = evt.localY;
+            that.x = evt.stageX - parent.x;
+            that.y = evt.stageY - parent.y;
         });
         this.on('pressup', function(evt) {
-            //evt.target.x = that._lastPos.x;
-            //evt.target.y = that._lastPos.y;
-            //return true;
-            console.log('up');
-            that.reset();
+            if (that.parent.dock(that, evt)) {
+                return;
+            }
+            if (that._lastPos) {
+                that.x = that._lastPos.x;
+                that.y = that._lastPos.y;
+            }
         });
     }
     var wolfPrototype = createjs.extend(Wolf, createjs.Container);
@@ -229,14 +250,6 @@ jQuery(function($) {
     };
     wolfPrototype.isVisible = function() {
         return true;
-    }
-    wolfPrototype.reset = function() {
-        if (this._lastPos) {
-            console.log('up');
-            console.log(this._lastPos);
-            this.x = this._lastPos.x;
-            this.y = this._lastPos.y;
-        }
     }
     window.Wolf = createjs.promote(Wolf, 'super');
 
@@ -249,11 +262,24 @@ jQuery(function($) {
         this.addChild(circle);
 
         var that = this;
+        this._lastPos = {};
+        this.on('mousedown', function(evt) {
+            that._lastPos = {x: that.x, y: that.y };
+        });
         this.on('pressmove', function(evt) {
             var parent = that.parent;
             parent.setChildIndex(that, parent.children.length - 1);
-            evt.target.x = evt.localX;
-            evt.target.y = evt.localY;
+            that.x = evt.stageX - parent.x;
+            that.y = evt.stageY - parent.y;
+        });
+        this.on('pressup', function(evt) {
+            if (that.parent.dock(that, evt)) {
+                return;
+            }
+            if (that._lastPos) {
+                that.x = that._lastPos.x;
+                that.y = that._lastPos.y;
+            }
         });
     }
     var sheepPrototype = createjs.extend(Sheep, createjs.Container);
