@@ -15,7 +15,7 @@ jQuery(function($) {
         gridDistance = gridDistance || 80;
         this.gridDistance = gridDistance;
 
-        // 棋子Positions
+        // chessman positions
         this.wolfPositionIndice = [12, 32];
         this.sheepPositionIndice = [
             16, 17, 18,
@@ -201,6 +201,27 @@ jQuery(function($) {
         var star = new createjs.Shape();
         star.graphics.beginFill("red").drawPolyStar(0, 0, 30, 5, 0.6, -90);
         this.addChild(star);
+
+        var that = this;
+        this._lastPos = {};
+        this.on('mousedown', function(evt) {
+            that._lastPos = {x: that.x, y: that.y };
+            console.log('mousedown trigger');
+            console.log(that._lastPos);
+        });
+        this.on('pressmove', function(evt) {
+            var parent = that.parent;
+            parent.setChildIndex(that, parent.children.length - 1);
+            evt.target.x = evt.localX;
+            evt.target.y = evt.localY;
+        });
+        this.on('pressup', function(evt) {
+            //evt.target.x = that._lastPos.x;
+            //evt.target.y = that._lastPos.y;
+            //return true;
+            console.log('up');
+            that.reset();
+        });
     }
     var wolfPrototype = createjs.extend(Wolf, createjs.Container);
     wolfPrototype.draw = function(ctx) {
@@ -208,6 +229,14 @@ jQuery(function($) {
     };
     wolfPrototype.isVisible = function() {
         return true;
+    }
+    wolfPrototype.reset = function() {
+        if (this._lastPos) {
+            console.log('up');
+            console.log(this._lastPos);
+            this.x = this._lastPos.x;
+            this.y = this._lastPos.y;
+        }
     }
     window.Wolf = createjs.promote(Wolf, 'super');
 
@@ -218,6 +247,14 @@ jQuery(function($) {
         var circle = new createjs.Shape();
         circle.graphics.beginFill("DeepSkyBlue").drawCircle(0, 0, 10);
         this.addChild(circle);
+
+        var that = this;
+        this.on('pressmove', function(evt) {
+            var parent = that.parent;
+            parent.setChildIndex(that, parent.children.length - 1);
+            evt.target.x = evt.localX;
+            evt.target.y = evt.localY;
+        });
     }
     var sheepPrototype = createjs.extend(Sheep, createjs.Container);
     sheepPrototype.draw = function(ctx) {
